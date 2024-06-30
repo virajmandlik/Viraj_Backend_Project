@@ -1,0 +1,17 @@
+{
+  "name": "project",
+  "version": "1.0.0",
+  "description": "Rearding the backend Functionalities",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "js",
+    "new",
+    "backend",
+    "react"
+  ],
+  "author": "viraj mandlik",
+  "license": "ISC"
+}
