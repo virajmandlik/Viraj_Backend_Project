@@ -36,5 +36,17 @@ app.use(express.static('public'))
 // using th ec[kiw parser thing  
 app.use(cookieParser())
 
+//routes import 
+import userRouter from './routes/user.routes.js'
 
-export default {app}
+// now before you were doing 
+// app.get...app.thing 
+// since thoug app you were writing the routes and controllers in same file 
+// but now you have separated the routes and controller file 
+// NOW TO BRING THE ROUTER YOU HAV E TO USE THE MIDDLEWARE 
+app.use("/api/v1/users",userRouter)
+
+export {app}
+
+
+// export default {app}
