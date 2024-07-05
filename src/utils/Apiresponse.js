@@ -6,7 +6,7 @@ class ApiResponse{
         this.success = statusCode<400
     }
 }
-
+export {ApiResponse}
 
 // Informational responses (100 – 199)
 // Successful responses (200 – 299)

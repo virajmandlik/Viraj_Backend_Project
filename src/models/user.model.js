@@ -59,7 +59,7 @@ userSchema.pre("save", async function(next){
     if(!this.isModified("password")) return next();
 
     // 10 means ki 10 rounds of encryption chalo
-    this.password = bcrypt.hash(this.password,10)
+    this.password = await bcrypt.hash(this.password,10)
 })
 
 // checking the password enterd by user is mathcing with that of satored passord 
