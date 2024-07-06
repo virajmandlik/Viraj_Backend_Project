@@ -2,6 +2,12 @@ import {v2 as cloudinary} from "cloudinary"
 import fs from "fs"
 
 
+cloudinary.config({ 
+            cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
+            api_key: process.env.CLOUDINARY_API_KEY,
+            api_secret: process.env.CLOUDINARY_API_SECRET// Click 'View Credentials' below to copy your API secret
+        });
+
 // uploading any type of files
 
 // making of function to get the file path form server 
@@ -15,9 +21,10 @@ const uploadOnCloudinary = async (localFilePath)=>{
         })
 
         //file has been uploaded seccesfuly
-        console.log("File is Uploaded on cloudinary..!"
-            ,response.url
-        )
+        console.log("File is Uploaded on cloudinary..!",response.url)
+        // console.log('The response is ',response)
+        //  console.log("file is uploaded on cloudinary ", response.url);
+         fs.unlinkSync(localFilePath)
         return response
     }catch(error){
         // now we know that file is not uploaded to  cloudinary but file is present on our 
