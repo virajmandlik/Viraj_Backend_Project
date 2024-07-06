@@ -5,6 +5,7 @@ import {uploadOnCloudinary} from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/Apiresponse.js";
 import mongoose from "mongoose";
 import { json } from "express";
+import jwt from "jsonwebtoken"
 
 
 //  asyncHandler is a higher orde funcction that will accept another function 
@@ -113,7 +114,7 @@ const generateAccessAndRefreshTokens = async (userId)=>{
         // adding the refresh token inside user 
         user.refreshToken = refreshToken
         // to save this user , 
-        user.save()
+        // user.save()
         // hume pata he ki humne bass iski 
         // refresh token hi update kara he update kara he, but in saving it will check for password too
         // for that 
@@ -162,19 +163,19 @@ const registerUser = asyncHandler( async (req, res) => {
     // const avatarLocalPath = avatarFile?.path; 
 // end 
     //  method 1 to get the path
-    const avatarLocalPath = req.files?.avatar[0]?.path;
+    // const avatarLocalPath = req.files?.avatar[0]?.path;
 
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    // const coverImageLocalPath = req.files?.coverImage[0]?.path;
 
-    // let avatarLocalPath;
-    // if (req.files && Array.isArray(req.files.avatar) && req.files.avatar.length > 0) {
-    //     avatarLocalPath = req.files.avatar[0].path
-    // }
+    let avatarLocalPath;
+    if (req.files && Array.isArray(req.files.avatar) && req.files.avatar.length > 0) {
+        avatarLocalPath = req.files.avatar[0].path
+    }
     // method 2 to get the path...easy to understand 
-    // let coverImageLocalPath;
-    // if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
-    //     coverImageLocalPath = req.files.coverImage[0].path
-    // }
+    let coverImageLocalPath;
+    if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
+        coverImageLocalPath = req.files.coverImage[0].path
+    }
     
 
     if (!avatarLocalPath) {
@@ -226,7 +227,7 @@ const loginUser = asyncHandler(async (req,res)=>{
     const {email,username,password} = req.body
 
     // dono me se ek to needed 
-    if(!username || !email){
+    if(!(username || email)){
         throw new ApiError(400,"Username or email is required")
     }
 
@@ -330,4 +331,65 @@ const logoutUser = asyncHandler(async (req,res)=>{
     
 })
 
-export {registerUser ,loginUser,logoutUser }
+const refreshAccessToken = asyncHandler(async (req,res)=>{
+    // now to get the refresh token from thte requested frontend, 
+    // we will get it from cokkies of it
+    // also what if some one is accesing it from mobile then we will bet it from the body of request 
+
+    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
+    
+    // jar mala to bhetlach nahi tar 
+    if(!incomingRefreshToken)
+        throw new ApiError(401,"Unautorized kaam zalh..!")
+
+// since hence forht kaam can be come error so we use the try catch mehtod for this
+
+   try {
+     // since me front end la encrypted token takla hota so mala request madhi pan encrypted token ch tar bhetnar
+     // and i want to compare it with db  me store token 
+     // for that i need to decode the incoming refreshtoken 
+     const decodedToken = jwt.verify(
+         incomingRefreshToken,
+         process.env.REFRESH_TOKEN_SECRET
+     )
+ 
+     // now since in generateRefreshToken  i have provided only IdleDeadlineso i will retrive only the id 
+     // and find the refresh token in db for that user 
+     const user = await User.findById(decodedToken?._id) // ?._id means if decodedToken is not null then get the id from it
+     
+     if (!user)
+         throw new ApiError(401,"Invalid Refresh token bhtel:.!")
+ 
+     // checking both of the tokens
+     if(incomingRefreshToken !==user?.refreshToken)
+         throw new ApiError(401,"Refresh token is expired or used:!")
+ 
+     // now if they are matching then generate new tokens 
+     // now we have to send them in cookies 
+     // for that we have to write the options for that cookies 
+     const options  = {
+         httpOnly:true,
+         secure:true
+     }
+ 
+     // genersating new access and refresh tokens 
+     const {accessToken,newrefreshToken} = await generateAccessAndRefreshTokens(user._id)
+ 
+      return res
+      .status(200)
+      .cookie("accessToken",accessToken),options
+      .cookie("refreshToken",newrefreshToken,options)
+      .json(
+         new ApiResponse(
+             200,
+             {accessToken,newrefreshToken},
+             "Access token successfully..!"
+         )
+      )
+   } catch (error) {
+    throw new ApiError(401,"invalid refresh token dil n bho tu..!")
+   }
+
+})
+
+export {registerUser ,loginUser,logoutUser,refreshAccessToken }

@@ -1,6 +1,6 @@
 // s1 
 import { Router } from "express";
-import { loginUser, logoutUser, registerUser } from "../controllers/user.controller.js";
+import { loginUser, logoutUser, refreshAccessToken, registerUser } from "../controllers/user.controller.js";
 import {upload} from "../middlewares/multer.middleware.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 // s2 
@@ -34,7 +34,9 @@ router.route("/login").post(loginUser)
 
 //secured routes
 router.route("/logout").post(verifyJWT,logoutUser)
-
+// could used the verifyJWT if you have to verify via the id and thne refrehed , but here insided it ihvae veified alsredy , thats why not used the 
+// middlewasre jwtverify 
+router.route("/refresh-token").post(refreshAccessToken)
 // s3 
 // export the router 
 export default router
